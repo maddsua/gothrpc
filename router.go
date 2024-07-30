@@ -8,7 +8,7 @@ type Router map[string]Handler
 
 func (this Router) Handle(ctx Context) (any, error) {
 
-	procname, hasProcname := ctx.ProcPath.Next()
+	procname, hasProcname := ctx.procPath.Next()
 	if !hasProcname {
 		return nil, ErrorProcedureNotFound
 	}

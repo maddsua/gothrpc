@@ -4,22 +4,28 @@ import (
 	"net/http"
 )
 
-type Context struct {
-	Headers    http.Header
-	Method     string
-	RemoteAddr string
-	Args       ProcArgs
-	Props      any
-	ProcPath   ProcedureStepper
-}
-
-type ProcArgs map[string]any
-
 type Handler interface {
 	Handle(ctx Context) (any, error)
 }
 
-func HandleFunc(handler func(ctx Context) (any, error)) Handler {
+type QueryHandler[R any] interface {
+	Handle(ctx Context, args Args) (R, error)
+}
+
+type MutationHandler[P, R any] interface {
+	Handle(ctx Context, args Args, props P) (R, error)
+}
+
+type Context struct {
+	Req *http.Request
+	//	todo: rename
+	Props    any
+	procPath procStepper
+}
+
+type Args map[string]string
+
+func HandleFn(handler func(ctx Context) (any, error)) Handler {
 	return &handlerFuncWrapper{
 		handler: handler,
 	}
@@ -31,9 +37,37 @@ type handlerFuncWrapper struct {
 
 func (this *handlerFuncWrapper) Handle(ctx Context) (any, error) {
 
-	if ctx.ProcPath.HasNext() {
+	if ctx.procPath.HasNext() {
 		return nil, ErrorProcedureNotFound
 	}
 
 	return this.handler(ctx)
+}
+
+func QueryHandlerFn[R any](handler func(ctx Context, args Args) (R, error)) QueryHandler[R] {
+	return &queryHandlerFnWrapper[R]{
+		handler: handler,
+	}
+}
+
+type queryHandlerFnWrapper[R any] struct {
+	handler func(ctx Context, args Args) (R, error)
+}
+
+func (this *queryHandlerFnWrapper[R]) Handle(ctx Context, args Args) (R, error) {
+	return this.handler(ctx, args)
+}
+
+func MutationHandlerFn[P, R any](handler func(ctx Context, args Args, props P) (R, error)) MutationHandler[P, R] {
+	return &mutationHandlerFnWrapper[P, R]{
+		handler: handler,
+	}
+}
+
+type mutationHandlerFnWrapper[P, R any] struct {
+	handler func(ctx Context, args Args, props P) (R, error)
+}
+
+func (this *mutationHandlerFnWrapper[P, R]) Handle(ctx Context, args Args, props P) (R, error) {
+	return this.handler(ctx, args, props)
 }

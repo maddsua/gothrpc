@@ -1,17 +1,11 @@
 package gothrpc
 
-func NewProcedureStepper(segments []string) ProcedureStepper {
-	return ProcedureStepper{
-		segments: segments,
-	}
-}
-
-type ProcedureStepper struct {
+type procStepper struct {
 	segments []string
 	cursor   int
 }
 
-func (this *ProcedureStepper) Next() (string, bool) {
+func (this *procStepper) Next() (string, bool) {
 
 	if this.cursor < 0 || this.cursor >= len(this.segments) {
 		return "", false
@@ -23,6 +17,6 @@ func (this *ProcedureStepper) Next() (string, bool) {
 	return segment, true
 }
 
-func (this *ProcedureStepper) HasNext() bool {
+func (this *procStepper) HasNext() bool {
 	return this.cursor < len(this.segments)
 }

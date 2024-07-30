@@ -11,7 +11,7 @@ func (this *Method) Handle(ctx Context) (any, error) {
 
 	var useHandler Handler
 
-	switch ctx.Method {
+	switch ctx.Req.Method {
 	case "GET":
 		useHandler = this.GET
 	case "POST":

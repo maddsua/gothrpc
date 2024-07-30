@@ -16,25 +16,26 @@ func (this errorResult) StatusCode() int {
 // todo: add procedure handlers with type definitions
 var procRouter = gothrpc.Router{
 	"test": &gothrpc.Method{
-		GET: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+		GET: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {
 			return map[string]any{
-				"args":    ctx.Args,
+				"args":    "ctx.Args",
 				"message": "well this didn't do much!",
 			}, nil
 		}),
-		POST: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+		POST: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {
 			return "whoops!", nil
 		}),
-		DELETE: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+		DELETE: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {
 			return errorResult{"test": "test errors"}, nil
 		}),
 	},
 	"next": gothrpc.Router{
-		"test": &gothrpc.Procedure{
-			Query: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+		"test": &gothrpc.Procedure[any, string]{
+			Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (string, error) {
 				return "whoa a next gen test fr", nil
 			}),
-			Mutation: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+			Mutation: gothrpc.MutationHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args, p any) (string, error) {
+				fmt.Printf("props: %v\n", p)
 				return "ok so this would imply that we did modify something, eh?", nil
 			}),
 		},
