@@ -13,6 +13,8 @@ type RestHandler struct {
 
 func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
+	//	todo: also add methods to handle CORS and stuff
+
 	pathSegments := strings.Split(strings.TrimPrefix(strings.ReplaceAll(req.URL.Path, "//", "/"), "/"), "/")
 
 	ctx := Context{

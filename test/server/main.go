@@ -30,9 +30,12 @@ var procRouter = gothrpc.Router{
 		}),
 	},
 	"next": gothrpc.Router{
-		"test": &gothrpc.Method{
-			GET: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+		"test": &gothrpc.Procedure{
+			Query: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
 				return "whoa a next gen test fr", nil
+			}),
+			Mutation: gothrpc.HandleFunc(func(ctx gothrpc.Context) (any, error) {
+				return "ok so this would imply that we did modify something, eh?", nil
 			}),
 		},
 	},
