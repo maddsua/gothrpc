@@ -1,4 +1,4 @@
-package proc
+package gothrpc
 
 func NewProcedureStepper(segments []string) ProcedureStepper {
 	return ProcedureStepper{

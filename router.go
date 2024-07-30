@@ -1,4 +1,4 @@
-package proc
+package gothrpc
 
 import (
 	"errors"
@@ -49,6 +49,10 @@ func (this Router) Exec(ctx Context) Result {
 	}()
 
 	if err == nil {
+
+		//	todo: write different codes based on returned content
+		//	eg: return 204 for successful responses with no data
+		//	idk if that's a good idea tho. we'll see
 
 		result := Result{
 			status: 200,

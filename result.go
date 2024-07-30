@@ -1,4 +1,4 @@
-package proc
+package gothrpc
 
 import "net/http"
 

@@ -1,17 +1,15 @@
-package rest
-
-import "goproc/proc"
+package gothrpc
 
 type Method struct {
-	GET    proc.Handler
-	POST   proc.Handler
-	PUT    proc.Handler
-	DELETE proc.Handler
+	GET    Handler
+	POST   Handler
+	PUT    Handler
+	DELETE Handler
 }
 
-func (this *Method) Handle(ctx proc.Context) (any, error) {
+func (this *Method) Handle(ctx Context) (any, error) {
 
-	var useHandler proc.Handler
+	var useHandler Handler
 
 	switch ctx.Method {
 	case "GET":
@@ -25,7 +23,7 @@ func (this *Method) Handle(ctx proc.Context) (any, error) {
 	}
 
 	if useHandler == nil {
-		return nil, proc.ErrorMethodNotAllowed
+		return nil, ErrorMethodNotAllowed
 	}
 
 	return useHandler.Handle(ctx)

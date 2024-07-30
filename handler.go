@@ -1,4 +1,4 @@
-package proc
+package gothrpc
 
 import (
 	"net/http"
@@ -8,12 +8,12 @@ type Context struct {
 	Headers    http.Header
 	Method     string
 	RemoteAddr string
-	Args       Args
+	Args       ProcArgs
 	Props      any
 	ProcPath   ProcedureStepper
 }
 
-type Args map[string]any
+type ProcArgs map[string]any
 
 type Handler interface {
 	Handle(ctx Context) (any, error)

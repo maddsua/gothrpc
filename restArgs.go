@@ -1,17 +1,16 @@
-package rest
+package gothrpc
 
 import (
 	"encoding/json"
-	"goproc/proc"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
-func parseArgs(req *http.Request) proc.Args {
+func parseArgs(req *http.Request) ProcArgs {
 
-	args := proc.Args{}
+	args := ProcArgs{}
 
 	args = parseUrlArgs(args, req.URL)
 
@@ -32,7 +31,7 @@ func parseArgs(req *http.Request) proc.Args {
 	return args
 }
 
-func parseUrlArgs(args proc.Args, url *url.URL) proc.Args {
+func parseUrlArgs(args ProcArgs, url *url.URL) ProcArgs {
 
 	if args == nil {
 		args = map[string]any{}
@@ -50,7 +49,7 @@ func parseUrlArgs(args proc.Args, url *url.URL) proc.Args {
 	return args
 }
 
-func parseBodyArgs(args proc.Args, body []byte) proc.Args {
+func parseBodyArgs(args ProcArgs, body []byte) ProcArgs {
 
 	if args == nil {
 		args = map[string]any{}
