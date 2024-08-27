@@ -41,13 +41,13 @@ func (this *Procedure[P, R]) handleMutation(ctx Context) (any, error) {
 		return nil, ErrorMethodNotAllowed
 	}
 
-	var props P
+	var payload P
 
 	//	todo: sort this mess out
 	//	fail if P is a concrete type and body is empty
 	if strings.Contains(ctx.Req.Header.Get("content-type"), "json") {
 		if data, err := io.ReadAll(ctx.Req.Body); err == nil {
-			if err := json.Unmarshal(data, &props); err != nil {
+			if err := json.Unmarshal(data, &payload); err != nil {
 				return nil, errors.New("failed to parse mutation props")
 			}
 		}
@@ -55,7 +55,7 @@ func (this *Procedure[P, R]) handleMutation(ctx Context) (any, error) {
 
 	args := procedureGetArgs(ctx)
 
-	return this.Mutation.Handle(ctx, args, props)
+	return this.Mutation.Handle(ctx, args, payload)
 }
 
 func procedureGetArgs(ctx Context) Args {

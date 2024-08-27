@@ -35,7 +35,7 @@ var procRouter = gothrpc.Router{
 				return "whoa a next gen test fr", nil
 			}),
 			Mutation: gothrpc.MutationHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args, p any) (string, error) {
-				fmt.Printf("props: %v\n", p)
+				fmt.Printf("payload: %v\n", p)
 				return "ok so this would imply that we did modify something, eh?", nil
 			}),
 		},

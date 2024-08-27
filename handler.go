@@ -58,16 +58,16 @@ func (this *queryHandlerFnWrapper[R]) Handle(ctx Context, args Args) (R, error) 
 	return this.handler(ctx, args)
 }
 
-func MutationHandlerFn[P, R any](handler func(ctx Context, args Args, props P) (R, error)) MutationHandler[P, R] {
+func MutationHandlerFn[P, R any](handler func(ctx Context, args Args, payload P) (R, error)) MutationHandler[P, R] {
 	return &mutationHandlerFnWrapper[P, R]{
 		handler: handler,
 	}
 }
 
 type mutationHandlerFnWrapper[P, R any] struct {
-	handler func(ctx Context, args Args, props P) (R, error)
+	handler func(ctx Context, args Args, payload P) (R, error)
 }
 
-func (this *mutationHandlerFnWrapper[P, R]) Handle(ctx Context, args Args, props P) (R, error) {
-	return this.handler(ctx, args, props)
+func (this *mutationHandlerFnWrapper[P, R]) Handle(ctx Context, args Args, payload P) (R, error) {
+	return this.handler(ctx, args, payload)
 }
