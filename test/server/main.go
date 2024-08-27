@@ -45,14 +45,16 @@ var procRouter = gothrpc.Router{
 func main() {
 
 	const serverPort = "7774"
+	const apiPrefix = "/api/rest/v1/"
 
 	procHandler := &gothrpc.RestHandler{
 		Router: procRouter,
+		Prefix: apiPrefix,
 	}
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/", procHandler)
+	mux.Handle(apiPrefix, procHandler)
 
 	fmt.Printf("Listening at: http://localhost:%s\n", serverPort)
 
