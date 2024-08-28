@@ -17,10 +17,10 @@ type MutationHandler[P, R any] interface {
 }
 
 type Context struct {
-	Req *http.Request
-	//	todo: rename
-	Props    any
-	procPath procStepper
+	Req          *http.Request
+	Props        any
+	errorHandler func(err error, ctx Context)
+	procPath     procStepper
 }
 
 type Args map[string]string

@@ -2,37 +2,46 @@ package gothrpc
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 )
 
-func NewRestContext(req *http.Request, ctx *RestHandler) Context {
-
-	path := req.URL.Path
-	if ctx.Prefix != "" {
-		path = strings.TrimPrefix(path, ctx.Prefix)
-	}
-
-	return Context{
-		Req: req,
-		procPath: procStepper{
-			segments: strings.Split(strings.TrimPrefix(path, "/"), "/"),
-		},
-		Props: ctx.Props,
-	}
-}
-
 type RestHandler struct {
-	Router Router
-	Props  any
-	Prefix string
+	Router       Router
+	GetProps     func() any
+	Prefix       string
+	ErrorHandler func(err error, ctx Context)
 }
 
 func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	//	todo: also add methods to handle CORS and stuff
 
-	ctx := NewRestContext(req, this)
+	path := req.URL.Path
+	if this.Prefix != "" {
+		path = strings.TrimPrefix(path, this.Prefix)
+	}
+
+	ctx := Context{
+		Req: req,
+		procPath: procStepper{
+			segments: strings.Split(strings.TrimPrefix(path, "/"), "/"),
+		},
+	}
+
+	if this.GetProps != nil {
+		ctx.Props = this.GetProps()
+	}
+
+	if this.ErrorHandler != nil {
+		ctx.errorHandler = this.ErrorHandler
+	} else {
+		ctx.errorHandler = func(err error, _ Context) {
+			log.Default().Print("gothrpc error: ", err.Error())
+		}
+	}
+
 	result := this.Router.Exec(ctx)
 
 	//	todo: error writer

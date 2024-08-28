@@ -2,6 +2,7 @@ package gothrpc
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Router map[string]Handler
@@ -30,16 +31,20 @@ func (this Router) Exec(ctx Context) Result {
 
 		defer func() {
 
-			//	todo: use context
-			//	todo: better error messages
-
 			if re := recover(); re != nil {
 
 				switch err.(type) {
 				case error:
 					err = re.(error)
+					if ctx.errorHandler != nil {
+						ctx.errorHandler(err, ctx)
+					}
+
 				default:
 					err = errors.New("runtime error")
+					if ctx.errorHandler != nil {
+						ctx.errorHandler(errors.New(fmt.Sprintf("%v", re)), ctx)
+					}
 				}
 			}
 		}()

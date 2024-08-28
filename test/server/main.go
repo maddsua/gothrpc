@@ -40,6 +40,16 @@ var procRouter = gothrpc.Router{
 			}),
 		},
 	},
+	"props": &gothrpc.Procedure[any, any]{
+		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
+			return ctx.Props, nil
+		}),
+	},
+	"panic": &gothrpc.Procedure[any, any]{
+		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
+			panic("test panic")
+		}),
+	},
 }
 
 func main() {
@@ -50,6 +60,15 @@ func main() {
 	procHandler := &gothrpc.RestHandler{
 		Router: procRouter,
 		Prefix: apiPrefix,
+		GetProps: func() any {
+			return map[string]string{
+				"test":      "ok",
+				"some_data": "42",
+			}
+		},
+		/*ErrorHandler: func(err error, ctx gothrpc.Context) {
+			fmt.Printf("handler error: %s\n", err.Error())
+		},*/
 	}
 
 	mux := http.NewServeMux()
