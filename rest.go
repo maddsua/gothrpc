@@ -9,7 +9,7 @@ import (
 
 type RestHandler struct {
 	Router       Router
-	GetProps     func() any
+	GetProps     func(req *http.Request) any
 	Prefix       string
 	ErrorHandler func(err error, ctx Context)
 }
@@ -31,7 +31,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	if this.GetProps != nil {
-		ctx.Props = this.GetProps()
+		ctx.Props = this.GetProps(req)
 	}
 
 	if this.ErrorHandler != nil {
