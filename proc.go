@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-type Procedure[P any, R any] struct {
-	Query    QueryHandler[R]
-	Mutation MutationHandler[P, R]
+type Procedure[P any, Q any, M any] struct {
+	Query    QueryHandler[Q]
+	Mutation MutationHandler[P, M]
 }
 
-func (this *Procedure[P, R]) Handle(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) Handle(ctx Context) (any, error) {
 
 	switch ctx.Req.Method {
 	case "GET":
@@ -24,7 +24,7 @@ func (this *Procedure[P, R]) Handle(ctx Context) (any, error) {
 	return nil, ErrorMethodNotAllowed
 }
 
-func (this *Procedure[P, R]) handleQuery(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) handleQuery(ctx Context) (any, error) {
 
 	if this.Query == nil {
 		return nil, ErrorMethodNotAllowed
@@ -35,7 +35,7 @@ func (this *Procedure[P, R]) handleQuery(ctx Context) (any, error) {
 	return this.Query.Handle(ctx, args)
 }
 
-func (this *Procedure[P, R]) handleMutation(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) handleMutation(ctx Context) (any, error) {
 
 	if this.Mutation == nil {
 		return nil, ErrorMethodNotAllowed

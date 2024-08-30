@@ -30,7 +30,7 @@ var procRouter = gothrpc.Router{
 		}),
 	},
 	"next": gothrpc.Router{
-		"test": &gothrpc.Procedure[any, string]{
+		"test": &gothrpc.Procedure[any, string, string]{
 			Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (string, error) {
 				return "whoa a next gen test fr", nil
 			}),
@@ -40,12 +40,12 @@ var procRouter = gothrpc.Router{
 			}),
 		},
 	},
-	"props": &gothrpc.Procedure[any, any]{
+	"props": &gothrpc.Procedure[any, any, any]{
 		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
 			return ctx.Props, nil
 		}),
 	},
-	"panic": &gothrpc.Procedure[any, any]{
+	"panic": &gothrpc.Procedure[any, any, any]{
 		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
 			panic("test panic")
 		}),
@@ -55,7 +55,7 @@ var procRouter = gothrpc.Router{
 func main() {
 
 	const serverPort = "7774"
-	const apiPrefix = "/api/rest/v1/"
+	const apiPrefix = "/"
 
 	procHandler := &gothrpc.RestHandler{
 		Router: procRouter,
