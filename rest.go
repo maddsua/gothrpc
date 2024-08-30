@@ -24,10 +24,8 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	ctx := Context{
-		Req: req,
-		procPath: procStepper{
-			segments: strings.Split(strings.TrimPrefix(path, "/"), "/"),
-		},
+		Req:      req,
+		procPath: newStepper(path),
 	}
 
 	if this.GetProps != nil {

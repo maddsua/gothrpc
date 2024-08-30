@@ -9,6 +9,10 @@ type Method struct {
 
 func (this *Method) Handle(ctx Context) (any, error) {
 
+	if ctx.procPath.HasNext() {
+		return nil, ErrorProcedureNotFound
+	}
+
 	var useHandler Handler
 
 	switch ctx.Req.Method {

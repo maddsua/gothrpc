@@ -14,6 +14,10 @@ type Procedure[P any, Q any, M any] struct {
 
 func (this *Procedure[P, Q, M]) Handle(ctx Context) (any, error) {
 
+	if ctx.procPath.HasNext() {
+		return nil, ErrorProcedureNotFound
+	}
+
 	switch ctx.Req.Method {
 	case "GET":
 		return this.handleQuery(ctx)

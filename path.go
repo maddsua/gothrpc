@@ -1,5 +1,14 @@
 package gothrpc
 
+import "strings"
+
+func newStepper(path string) procStepper {
+	pathTrimmed := strings.TrimSuffix(strings.TrimPrefix(path, "/"), "/")
+	return procStepper{
+		segments: strings.Split(pathTrimmed, "/"),
+	}
+}
+
 type procStepper struct {
 	segments []string
 	cursor   int
