@@ -22,6 +22,7 @@ func (this Router) Handle(ctx Context) (any, error) {
 	return proc.Handle(ctx)
 }
 
+// todo: consider moving this into "executor"
 func (this Router) Exec(ctx Context) Result {
 
 	var data any
