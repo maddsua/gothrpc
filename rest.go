@@ -11,9 +11,11 @@ type RestHandler struct {
 	Router         Router
 	Prefix         string
 	OnBeforeHandle HookHandlerFn
+	OnAfterHandle  HookHandlerFn
 	OnError        ErrorHandlerFn
 }
 
+// todo: pass response.writer hooks
 type HookHandlerFn func(ctx *Context) error
 type ErrorHandlerFn func(err error, ctx Context)
 
