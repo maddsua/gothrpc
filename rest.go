@@ -10,18 +10,11 @@ import (
 type RestHandler struct {
 	Router       Router
 	BeforeHandle HookHandlerFn
-	AfterHandle  HookHandlerFn
 	Prefix       string
 	ErrorHandler func(err error, ctx Context)
 }
 
-type HookContext struct {
-	Context
-	SetStatus func(status int)
-	Headers   func() http.Header
-}
-
-type HookHandlerFn func(ctx *HookContext) error
+type HookHandlerFn func(ctx *Context) error
 
 func defaultErrorHandler(err error, _ Context) {
 	log.Default().Print("gothrpc error: ", err.Error())
@@ -41,27 +34,9 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		procPath: newStepper(path),
 	}
 
-	var hookSetStatus int
-	var hookSetHeaders http.Header
-
-	hookCtx := &HookContext{
-		SetStatus: func(status int) {
-			hookSetStatus = status
-		},
-		Headers: func() http.Header {
-
-			if hookSetHeaders == nil {
-				hookSetHeaders = http.Header{}
-			}
-
-			return hookSetHeaders
-		},
-	}
-
 	//	todo: defer panic recover
-
 	if this.BeforeHandle != nil {
-		if err := this.BeforeHandle(hookCtx); err != nil {
+		if err := this.BeforeHandle(&ctx); err != nil {
 			writeErrorResponse(writer, err)
 			return
 		}
@@ -74,51 +49,23 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	result := execute(this.Router, ctx)
-
-	if result.header != nil {
-		writeHeaders(writer, result.header)
-	}
-
-	if this.AfterHandle != nil {
-
-		if err := this.AfterHandle(hookCtx); err != nil {
-			writeErrorResponse(writer, err)
-			return
-		}
-
-		if hookSetHeaders != nil {
-
-			if result.header == nil {
-				result.header = http.Header{}
-			}
-
-			for header, entry := range hookSetHeaders {
-				for _, value := range entry {
-					result.header.Set(header, value)
-				}
-			}
-		}
-
-		if hookSetStatus > http.StatusContinue {
-			result.status = hookSetStatus
-		}
-	}
-
 	writeResponse(writer, result)
 }
 
 func writeResponse(writer http.ResponseWriter, result procedureResult) {
-	writer.Header().Set("content-type", "application/json")
-	writer.WriteHeader(result.status)
-	json.NewEncoder(writer).Encode(result)
-}
 
-func writeHeaders(writer http.ResponseWriter, headers http.Header) {
-	for header, entry := range headers {
-		for _, value := range entry {
-			writer.Header().Set(header, value)
+	if result.header != nil {
+		for header, entry := range result.header {
+			for _, value := range entry {
+				writer.Header().Set(header, value)
+			}
 		}
 	}
+
+	writer.Header().Set("content-type", "application/json")
+	writer.WriteHeader(result.status)
+
+	json.NewEncoder(writer).Encode(result)
 }
 
 func writeErrorResponse(writer http.ResponseWriter, err error) {
