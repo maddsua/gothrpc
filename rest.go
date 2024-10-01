@@ -34,7 +34,33 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		procPath: newStepper(path),
 	}
 
-	//	todo: defer panic recover
+	defer func() {
+
+		if re := recover(); re != nil {
+
+			err := ProcError{
+				HttpStatus: http.StatusInternalServerError,
+			}
+
+			switch re.(type) {
+			case error:
+				err.Message = re.(error).Error()
+
+			case string:
+				err.Message = re.(string)
+
+			default:
+				err.Message = "runtime error"
+			}
+
+			if this.ErrorHandler != nil {
+				this.ErrorHandler(err, ctx)
+			}
+
+			writeErrorResponse(writer, err)
+		}
+	}()
+
 	if this.BeforeHandle != nil {
 		if err := this.BeforeHandle(&ctx); err != nil {
 			writeErrorResponse(writer, err)
@@ -48,14 +74,19 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		ctx.errorHandler = defaultErrorHandler
 	}
 
-	result := execute(this.Router, ctx)
-	writeResponse(writer, result)
+	result, err := this.Router.Handle(ctx)
+	if err != nil {
+		writeErrorResponse(writer, err)
+		return
+	}
+
+	writeDataResponse(writer, result)
 }
 
-func writeResponse(writer http.ResponseWriter, result procedureResult) {
+func writeResponse(writer http.ResponseWriter, response procResult) {
 
-	if result.header != nil {
-		for header, entry := range result.header {
+	if response.header != nil {
+		for header, entry := range response.header {
 			for _, value := range entry {
 				writer.Header().Set(header, value)
 			}
@@ -63,26 +94,47 @@ func writeResponse(writer http.ResponseWriter, result procedureResult) {
 	}
 
 	writer.Header().Set("content-type", "application/json")
-	writer.WriteHeader(result.status)
+	writer.WriteHeader(response.status)
 
-	json.NewEncoder(writer).Encode(result)
+	json.NewEncoder(writer).Encode(response)
 }
 
 func writeErrorResponse(writer http.ResponseWriter, err error) {
 
-	result := procedureResult{
+	response := procResult{
 		Error: &ProcError{
 			Message: err.Error(),
 		},
 	}
 
 	if ext, ok := err.(Headerer); ok {
-		result.header = ext.Headers()
+		response.header = ext.Headers()
 	}
 
 	if ext, ok := err.(Statuser); ok {
-		result.status = ext.StatusCode()
+		response.status = ext.StatusCode()
 	}
 
-	writeResponse(writer, result)
+	writeResponse(writer, response)
+}
+
+func writeDataResponse(writer http.ResponseWriter, result any) {
+
+	response := procResult{
+		status: 200,
+		Data:   result,
+	}
+
+	if result == nil {
+		response.status = 204
+	}
+
+	if ext, ok := result.(Statuser); ok {
+		response.status = ext.StatusCode()
+	}
+	if ext, ok := result.(Headerer); ok {
+		response.header = ext.Headers()
+	}
+
+	writeResponse(writer, response)
 }
