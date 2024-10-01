@@ -24,6 +24,10 @@ type AfterHandleHookResult struct {
 	Headers    http.Header
 }
 
+func defaultErrorHandler(err error, _ Context) {
+	log.Default().Print("gothrpc error: ", err.Error())
+}
+
 func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	//	todo: also add methods to handle CORS and stuff
@@ -42,15 +46,13 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 	if this.BeforeHandle != nil {
 		//	todo: fix
-		err := this.BeforeHandle(req, &ctx)
+		err := this.BeforeHandle(&ctx)
 	}
 
 	if this.ErrorHandler != nil {
 		ctx.errorHandler = this.ErrorHandler
 	} else {
-		ctx.errorHandler = func(err error, _ Context) {
-			log.Default().Print("gothrpc error: ", err.Error())
-		}
+		ctx.errorHandler = defaultErrorHandler
 	}
 
 	result := execute(this.Router, ctx)
