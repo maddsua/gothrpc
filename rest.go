@@ -14,6 +14,8 @@ type RestHandler struct {
 	ErrorHandler func(err error, ctx Context)
 }
 
+type HandlerHookFn func() error
+
 func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	//	todo: also add methods to handle CORS and stuff
@@ -41,8 +43,6 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	result := this.Router.Exec(ctx)
-
-	//	todo: error writer
 
 	if result.Headers() != nil {
 		for header, entry := range result.Headers() {
