@@ -9,20 +9,19 @@ import (
 
 type RestHandler struct {
 	Router       Router
-	BeforeHandle BeforeHandleHookFn
-	AfterHandle  AfterHandleHookFn
+	BeforeHandle HookHandlerFn
+	AfterHandle  HookHandlerFn
 	Prefix       string
 	ErrorHandler func(err error, ctx Context)
 }
 
-type BeforeHandleHookFn func(ctx *Context) error
-
-type AfterHandleHookFn func(ctx *Context) (*AfterHandleHookResult, error)
-
-type AfterHandleHookResult struct {
-	StatusCode int
-	Headers    http.Header
+type HookContext struct {
+	Context
+	SetStatus func(status int)
+	Headers   func() http.Header
 }
+
+type HookHandlerFn func(ctx *HookContext) error
 
 func defaultErrorHandler(err error, _ Context) {
 	log.Default().Print("gothrpc error: ", err.Error())
@@ -42,10 +41,27 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		procPath: newStepper(path),
 	}
 
+	var hookSetStatus int
+	var hookSetHeaders http.Header
+
+	hookCtx := &HookContext{
+		SetStatus: func(status int) {
+			hookSetStatus = status
+		},
+		Headers: func() http.Header {
+
+			if hookSetHeaders == nil {
+				hookSetHeaders = http.Header{}
+			}
+
+			return hookSetHeaders
+		},
+	}
+
 	//	todo: defer panic recover
 
 	if this.BeforeHandle != nil {
-		if err := this.BeforeHandle(&ctx); err != nil {
+		if err := this.BeforeHandle(hookCtx); err != nil {
 			writeErrorResponse(writer, err)
 			return
 		}
@@ -65,29 +81,33 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 	if this.AfterHandle != nil {
 
-		hookResult, err := this.AfterHandle(&ctx)
-		if err != nil {
+		if err := this.AfterHandle(hookCtx); err != nil {
 			writeErrorResponse(writer, err)
 			return
 		}
 
-		if hookResult != nil {
+		if hookSetHeaders != nil {
 
-			if hookResult.Headers != nil {
-				writeHeaders(writer, hookResult.Headers)
+			if result.header == nil {
+				result.header = http.Header{}
 			}
 
-			if hookResult.StatusCode > http.StatusOK {
-				result.status = hookResult.StatusCode
+			for header, entry := range hookSetHeaders {
+				for _, value := range entry {
+					result.header.Set(header, value)
+				}
 			}
+		}
 
+		if hookSetStatus > http.StatusContinue {
+			result.status = hookSetStatus
 		}
 	}
 
 	writeResponse(writer, result)
 }
 
-func writeResponse(writer http.ResponseWriter, result Result) {
+func writeResponse(writer http.ResponseWriter, result procedureResult) {
 	writer.Header().Set("content-type", "application/json")
 	writer.WriteHeader(result.status)
 	json.NewEncoder(writer).Encode(result)
@@ -103,7 +123,7 @@ func writeHeaders(writer http.ResponseWriter, headers http.Header) {
 
 func writeErrorResponse(writer http.ResponseWriter, err error) {
 
-	result := Result{
+	result := procedureResult{
 		Error: &ProcError{
 			Message: err.Error(),
 		},

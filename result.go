@@ -10,7 +10,7 @@ type Headerer interface {
 	Headers() http.Header
 }
 
-type Result struct {
+type procedureResult struct {
 	Data   any        `json:"data"`
 	Error  *ProcError `json:"error,omitempty"`
 	status int

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func execute(handler Handler, ctx Context) Result {
+func execute(handler Handler, ctx Context) procedureResult {
 
 	var data any
 	var err error
@@ -40,7 +40,7 @@ func execute(handler Handler, ctx Context) Result {
 
 	if err == nil {
 
-		result := Result{
+		result := procedureResult{
 			status: 200,
 			Data:   data,
 		}
@@ -59,7 +59,7 @@ func execute(handler Handler, ctx Context) Result {
 		return result
 	}
 
-	result := Result{
+	result := procedureResult{
 		Error: &ProcError{},
 	}
 
