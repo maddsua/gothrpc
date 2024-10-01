@@ -44,8 +44,8 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 	//	todo: error writer
 
-	if result.Header() != nil {
-		for header, entry := range result.Header() {
+	if result.Headers() != nil {
+		for header, entry := range result.Headers() {
 			for _, value := range entry {
 				writer.Header().Set(header, value)
 			}
@@ -54,7 +54,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 	writer.Header().Set("content-type", "application/json")
 
-	writer.WriteHeader(result.Status())
+	writer.WriteHeader(result.StatusCode())
 
 	json.NewEncoder(writer).Encode(result)
 }

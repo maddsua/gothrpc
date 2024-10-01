@@ -2,6 +2,14 @@ package gothrpc
 
 import "net/http"
 
+type Statuser interface {
+	StatusCode() int
+}
+
+type Headerer interface {
+	Headers() http.Header
+}
+
 type Result struct {
 	Data   any        `json:"data"`
 	Error  *ProcError `json:"error,omitempty"`
@@ -9,19 +17,10 @@ type Result struct {
 	header http.Header
 }
 
-func (this *Result) Status() int {
+func (this *Result) StatusCode() int {
 	return this.status
 }
 
-func (this *Result) Header() http.Header {
+func (this *Result) Headers() http.Header {
 	return this.header
-}
-
-type Statuser interface {
-	StatusCode() int
-}
-
-//	yeah make jokes about it's name, I don't care
-type Headerer interface {
-	Headers() http.Header
 }
