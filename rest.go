@@ -8,13 +8,14 @@ import (
 )
 
 type RestHandler struct {
-	Router       Router
-	BeforeHandle HookHandlerFn
-	Prefix       string
-	ErrorHandler func(err error, ctx Context)
+	Router         Router
+	Prefix         string
+	OnBeforeHandle HookHandlerFn
+	OnError        ErrorHandlerFn
 }
 
 type HookHandlerFn func(ctx *Context) error
+type ErrorHandlerFn func(err error, ctx Context)
 
 func defaultErrorHandler(err error, _ Context) {
 	log.Default().Print("gothrpc error: ", err.Error())
@@ -53,23 +54,23 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 				err.Message = "runtime error"
 			}
 
-			if this.ErrorHandler != nil {
-				this.ErrorHandler(err, ctx)
+			if this.OnError != nil {
+				this.OnError(err, ctx)
 			}
 
 			writeErrorResponse(writer, err)
 		}
 	}()
 
-	if this.BeforeHandle != nil {
-		if err := this.BeforeHandle(&ctx); err != nil {
+	if this.OnBeforeHandle != nil {
+		if err := this.OnBeforeHandle(&ctx); err != nil {
 			writeErrorResponse(writer, err)
 			return
 		}
 	}
 
-	if this.ErrorHandler != nil {
-		ctx.errorHandler = this.ErrorHandler
+	if this.OnError != nil {
+		ctx.errorHandler = this.OnError
 	} else {
 		ctx.errorHandler = defaultErrorHandler
 	}
