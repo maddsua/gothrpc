@@ -9,12 +9,20 @@ import (
 
 type RestHandler struct {
 	Router       Router
-	GetProps     func(req *http.Request) any
+	BeforeHandle BeforeHandleHookFn
+	AfterHandle  AfterHandleHookFn
 	Prefix       string
 	ErrorHandler func(err error, ctx Context)
 }
 
-type HandlerHookFn func() error
+type BeforeHandleHookFn func(req *http.Request, ctx *Context) error
+
+type AfterHandleHookFn func(ctx *Context) (*AfterHandleHookResult, error)
+
+type AfterHandleHookResult struct {
+	StatusCode int
+	Headers    http.Header
+}
 
 func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
@@ -30,8 +38,11 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		procPath: newStepper(path),
 	}
 
-	if this.GetProps != nil {
-		ctx.Props = this.GetProps(req)
+	//	todo: defer panic recover
+
+	if this.BeforeHandle != nil {
+		//	todo: fix
+		err := this.BeforeHandle(req, &ctx)
 	}
 
 	if this.ErrorHandler != nil {
@@ -53,6 +64,11 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	writer.Header().Set("content-type", "application/json")
+
+	if this.AfterHandle != nil {
+		//	todo: fix
+		hookResult, err := this.AfterHandle(&ctx)
+	}
 
 	writer.WriteHeader(result.StatusCode())
 
