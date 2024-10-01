@@ -43,15 +43,10 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	//	todo: defer panic recover
-	//	todo: get status and headers from hook return values
 
 	if this.BeforeHandle != nil {
 		if err := this.BeforeHandle(&ctx); err != nil {
-			writeResponse(writer, Result{
-				Error: &ProcError{
-					Message: err.Error(),
-				},
-			})
+			writeErrorResponse(writer, err)
 			return
 		}
 	}
@@ -72,11 +67,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 		hookResult, err := this.AfterHandle(&ctx)
 		if err != nil {
-			writeResponse(writer, Result{
-				Error: &ProcError{
-					Message: err.Error(),
-				},
-			})
+			writeErrorResponse(writer, err)
 			return
 		}
 
@@ -108,4 +99,23 @@ func writeHeaders(writer http.ResponseWriter, headers http.Header) {
 			writer.Header().Set(header, value)
 		}
 	}
+}
+
+func writeErrorResponse(writer http.ResponseWriter, err error) {
+
+	result := Result{
+		Error: &ProcError{
+			Message: err.Error(),
+		},
+	}
+
+	if ext, ok := err.(Headerer); ok {
+		result.header = ext.Headers()
+	}
+
+	if ext, ok := err.(Statuser); ok {
+		result.status = ext.StatusCode()
+	}
+
+	writeResponse(writer, result)
 }

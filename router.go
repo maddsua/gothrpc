@@ -6,12 +6,12 @@ func (this Router) Handle(ctx Context) (any, error) {
 
 	procname, hasProcname := ctx.procPath.Next()
 	if !hasProcname {
-		return nil, ErrorProcedureNotFound
+		return nil, errProcNotFound
 	}
 
 	proc, has := this[procname]
 	if !has {
-		return nil, ErrorProcedureNotFound
+		return nil, errProcNotFound
 	}
 
 	return proc.Handle(ctx)

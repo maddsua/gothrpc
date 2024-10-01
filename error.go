@@ -20,14 +20,14 @@ func (this ProcErrorWithCode) StatusCode() int {
 	return this.code
 }
 
-var ErrorProcedureNotFound = ProcErrorWithCode{
+var errProcNotFound = ProcErrorWithCode{
 	ProcError: ProcError{
 		Message: "procedure not found",
 	},
 	code: http.StatusNotFound,
 }
 
-var ErrorMethodNotAllowed = ProcErrorWithCode{
+var errMethodNotAllowed = ProcErrorWithCode{
 	ProcError: ProcError{
 		Message: "method not allowed",
 	},

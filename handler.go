@@ -38,7 +38,7 @@ type handlerFuncWrapper struct {
 func (this *handlerFuncWrapper) Handle(ctx Context) (any, error) {
 
 	if ctx.procPath.HasNext() {
-		return nil, ErrorProcedureNotFound
+		return nil, errProcNotFound
 	}
 
 	return this.handler(ctx)
