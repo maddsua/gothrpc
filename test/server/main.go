@@ -59,13 +59,13 @@ func main() {
 	procHandler := &gothrpc.RestHandler{
 		Router: procRouter,
 		Prefix: apiPrefix,
-		GetProps: func(req *http.Request) any {
+		/*GetProps: func(req *http.Request) any {
 			return map[string]string{
 				"test":      "ok",
 				"some_data": "42",
 				"remote":    req.RemoteAddr,
 			}
-		},
+		},*/
 		/*ErrorHandler: func(err error, ctx gothrpc.Context) {
 			fmt.Printf("handler error: %s\n", err.Error())
 		},*/

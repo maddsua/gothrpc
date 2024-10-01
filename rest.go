@@ -53,7 +53,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		}
 	}
 
-	result := this.Router.Exec(ctx)
+	result := execute(this.Router, ctx)
 
 	if result.Headers() != nil {
 		for header, entry := range result.Headers() {
