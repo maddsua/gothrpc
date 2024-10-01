@@ -16,11 +16,3 @@ type Result struct {
 	status int
 	header http.Header
 }
-
-func (this *Result) StatusCode() int {
-	return this.status
-}
-
-func (this *Result) Headers() http.Header {
-	return this.header
-}
