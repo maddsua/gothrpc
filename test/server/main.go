@@ -13,7 +13,6 @@ func (this errorResult) StatusCode() int {
 	return 400
 }
 
-// todo: add procedure handlers with type definitions
 var procRouter = gothrpc.Router{
 	"test": &gothrpc.Method{
 		GET: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {

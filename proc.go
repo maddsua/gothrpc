@@ -47,7 +47,6 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx Context) (any, error) {
 
 	var payload P
 
-	//	todo: sort this mess out
 	//	fail if P is a concrete type and body is empty
 	if strings.Contains(ctx.Req.Header.Get("content-type"), "json") {
 		if data, err := io.ReadAll(ctx.Req.Body); err == nil {

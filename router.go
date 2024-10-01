@@ -27,12 +27,15 @@ func (this Router) Exec(ctx Context) Result {
 
 	var data any
 	var err error
+	var isPanic bool
 
 	func() {
 
 		defer func() {
 
 			if re := recover(); re != nil {
+
+				isPanic = true
 
 				switch err.(type) {
 				case error:
@@ -56,13 +59,13 @@ func (this Router) Exec(ctx Context) Result {
 
 	if err == nil {
 
-		//	todo: write different codes based on returned content
-		//	eg: return 204 for successful responses with no data
-		//	idk if that's a good idea tho. we'll see
-
 		result := Result{
 			status: 200,
 			Data:   data,
+		}
+
+		if data == nil {
+			result.status = 204
 		}
 
 		if ext, ok := data.(Statuser); ok {
@@ -76,11 +79,9 @@ func (this Router) Exec(ctx Context) Result {
 	}
 
 	result := Result{
-		//	todo: detect runtime errors and set code to 500
-		status: 400,
+		Error: &ProcError{},
 	}
 
-	result.Error = &ProcError{}
 	if exterr, valid := err.(ProcError); valid {
 		*result.Error = exterr
 	} else {
@@ -89,7 +90,12 @@ func (this Router) Exec(ctx Context) Result {
 
 	if ext, ok := err.(Statuser); ok {
 		result.status = ext.StatusCode()
+	} else if isPanic {
+		result.status = 500
+	} else {
+		result.status = 400
 	}
+
 	if ext, ok := err.(Headerer); ok {
 		result.header = ext.Headers()
 	}
