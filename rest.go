@@ -15,7 +15,7 @@ type RestHandler struct {
 	ErrorHandler func(err error, ctx Context)
 }
 
-type BeforeHandleHookFn func(req *http.Request, ctx *Context) error
+type BeforeHandleHookFn func(ctx *Context) error
 
 type AfterHandleHookFn func(ctx *Context) (*AfterHandleHookResult, error)
 
