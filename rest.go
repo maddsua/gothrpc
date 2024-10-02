@@ -33,7 +33,7 @@ func defaultErrorHandler(err error) {
 
 func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
-	//	todo: also add methods to handle CORS and stuff
+	//	todo: add CORS handler
 
 	path := req.URL.Path
 	if this.Prefix != "" {
