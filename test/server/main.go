@@ -15,37 +15,39 @@ func (this errorResult) StatusCode() int {
 
 var procRouter = gothrpc.Router{
 	"test": &gothrpc.Method{
-		GET: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {
+		GET: gothrpc.HandleFn(func(ctx *gothrpc.Context) (any, error) {
 			return map[string]any{
 				"args":    "ctx.Args",
 				"message": "well this didn't do much!",
 			}, nil
 		}),
-		POST: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {
+		POST: gothrpc.HandleFn(func(ctx *gothrpc.Context) (any, error) {
+			val := ctx.Value.(int)
+			ctx.Value = val + 1
 			return "whoops!", nil
 		}),
-		DELETE: gothrpc.HandleFn(func(ctx gothrpc.Context) (any, error) {
+		DELETE: gothrpc.HandleFn(func(ctx *gothrpc.Context) (any, error) {
 			return errorResult{"test": "test errors"}, nil
 		}),
 	},
 	"next": gothrpc.Router{
 		"test": &gothrpc.Procedure[any, string, string]{
-			Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (string, error) {
+			Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args) (string, error) {
 				return "whoa a next gen test fr", nil
 			}),
-			Mutation: gothrpc.MutationHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args, p any) (string, error) {
+			Mutation: gothrpc.MutationHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args, p any) (string, error) {
 				fmt.Printf("payload: %v\n", p)
 				return "ok so this would imply that we did modify something, eh?", nil
 			}),
 		},
 	},
 	"props": &gothrpc.Procedure[any, any, any]{
-		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
-			return ctx.Props, nil
+		Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args) (any, error) {
+			return ctx.Value, nil
 		}),
 	},
 	"panic": &gothrpc.Procedure[any, any, any]{
-		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
+		Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args) (any, error) {
 			panic("test panic")
 		}),
 	},
@@ -59,16 +61,18 @@ func main() {
 	procHandler := &gothrpc.RestHandler{
 		Router: procRouter,
 		Prefix: apiPrefix,
-		GetProps: func(req *http.Request) any {
-			return map[string]string{
-				"test":      "ok",
-				"some_data": "42",
-				"remote":    req.RemoteAddr,
-			}
+		OnBeforeHandle: func(ctx *gothrpc.Context) error {
+			ctx.Value = int(42)
+			return nil
 		},
-		/*ErrorHandler: func(err error, ctx gothrpc.Context) {
+		OnAfterHandle: func(ctx *gothrpc.Context, result *gothrpc.RestResponse) error {
+			result.Headers = http.Header{}
+			result.Headers.Set("X-Value", fmt.Sprintf("%v", ctx.Value))
+			return nil
+		},
+		OnError: func(err error, ctx *gothrpc.Context) {
 			fmt.Printf("handler error: %s\n", err.Error())
-		},*/
+		},
 	}
 
 	mux := http.NewServeMux()
