@@ -5,15 +5,15 @@ import (
 )
 
 type Handler interface {
-	Handle(ctx Context) (any, error)
+	Handle(ctx *Context) (any, error)
 }
 
 type QueryHandler[R any] interface {
-	Handle(ctx Context, args Args) (R, error)
+	Handle(ctx *Context, args Args) (R, error)
 }
 
 type MutationHandler[P, R any] interface {
-	Handle(ctx Context, args Args, props P) (R, error)
+	Handle(ctx *Context, args Args, props P) (R, error)
 }
 
 type Context struct {
@@ -26,17 +26,17 @@ type Context struct {
 
 type Args map[string]string
 
-func HandleFn(handler func(ctx Context) (any, error)) Handler {
+func HandleFn(handler func(ctx *Context) (any, error)) Handler {
 	return &handlerFuncWrapper{
 		handler: handler,
 	}
 }
 
 type handlerFuncWrapper struct {
-	handler func(ctx Context) (any, error)
+	handler func(ctx *Context) (any, error)
 }
 
-func (this *handlerFuncWrapper) Handle(ctx Context) (any, error) {
+func (this *handlerFuncWrapper) Handle(ctx *Context) (any, error) {
 
 	if ctx.procPath.HasNext() {
 		return nil, errProcNotFound
@@ -45,30 +45,30 @@ func (this *handlerFuncWrapper) Handle(ctx Context) (any, error) {
 	return this.handler(ctx)
 }
 
-func QueryHandlerFn[R any](handler func(ctx Context, args Args) (R, error)) QueryHandler[R] {
+func QueryHandlerFn[R any](handler func(ctx *Context, args Args) (R, error)) QueryHandler[R] {
 	return &queryHandlerFnWrapper[R]{
 		handler: handler,
 	}
 }
 
 type queryHandlerFnWrapper[R any] struct {
-	handler func(ctx Context, args Args) (R, error)
+	handler func(ctx *Context, args Args) (R, error)
 }
 
-func (this *queryHandlerFnWrapper[R]) Handle(ctx Context, args Args) (R, error) {
+func (this *queryHandlerFnWrapper[R]) Handle(ctx *Context, args Args) (R, error) {
 	return this.handler(ctx, args)
 }
 
-func MutationHandlerFn[P, R any](handler func(ctx Context, args Args, payload P) (R, error)) MutationHandler[P, R] {
+func MutationHandlerFn[P, R any](handler func(ctx *Context, args Args, payload P) (R, error)) MutationHandler[P, R] {
 	return &mutHandlerFnWrapper[P, R]{
 		handler: handler,
 	}
 }
 
 type mutHandlerFnWrapper[P, R any] struct {
-	handler func(ctx Context, args Args, payload P) (R, error)
+	handler func(ctx *Context, args Args, payload P) (R, error)
 }
 
-func (this *mutHandlerFnWrapper[P, R]) Handle(ctx Context, args Args, payload P) (R, error) {
+func (this *mutHandlerFnWrapper[P, R]) Handle(ctx *Context, args Args, payload P) (R, error) {
 	return this.handler(ctx, args, payload)
 }

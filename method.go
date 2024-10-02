@@ -7,7 +7,7 @@ type Method struct {
 	DELETE Handler
 }
 
-func (this *Method) Handle(ctx Context) (any, error) {
+func (this *Method) Handle(ctx *Context) (any, error) {
 
 	if ctx.procPath.HasNext() {
 		return nil, errProcNotFound

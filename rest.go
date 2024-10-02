@@ -18,7 +18,7 @@ type RestHandler struct {
 type HookPreHandlerFn func(ctx *Context) error
 type HookPostHandlerFn func(ctx *Context, result *RestResponse) error
 
-type ErrorHandlerFn func(err error, ctx Context)
+type ErrorHandlerFn func(err error, ctx *Context)
 
 type RestResponse struct {
 	Data    any         `json:"data"`
@@ -40,7 +40,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		path = strings.TrimPrefix(path, this.Prefix)
 	}
 
-	ctx := Context{
+	ctx := &Context{
 		Req:      req,
 		procPath: newStepper(path),
 	}
@@ -75,7 +75,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}()
 
 	if this.OnBeforeHandle != nil {
-		if err := this.OnBeforeHandle(&ctx); err != nil {
+		if err := this.OnBeforeHandle(ctx); err != nil {
 			writeResponse(writer, wrapErrorResult(err))
 			return
 		}
@@ -84,7 +84,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	result := wrapHandlerResult(this.Router.Handle(ctx))
 
 	if this.OnAfterHandle != nil {
-		if err := this.OnAfterHandle(&ctx, &result); err != nil {
+		if err := this.OnAfterHandle(ctx, &result); err != nil {
 			writeResponse(writer, wrapErrorResult(err))
 			return
 		}

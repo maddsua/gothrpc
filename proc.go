@@ -21,7 +21,7 @@ type Procedure[P any, Q any, M any] struct {
 	Mutation MutationHandler[P, M]
 }
 
-func (this *Procedure[P, Q, M]) Handle(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) Handle(ctx *Context) (any, error) {
 
 	if ctx.procPath.HasNext() {
 		return nil, errProcNotFound
@@ -37,7 +37,7 @@ func (this *Procedure[P, Q, M]) Handle(ctx Context) (any, error) {
 	return nil, errMethodNotAllowed
 }
 
-func (this *Procedure[P, Q, M]) handleQuery(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) handleQuery(ctx *Context) (any, error) {
 
 	if this.Query == nil {
 		return nil, errMethodNotAllowed
@@ -48,7 +48,7 @@ func (this *Procedure[P, Q, M]) handleQuery(ctx Context) (any, error) {
 	return this.Query.Handle(ctx, args)
 }
 
-func (this *Procedure[P, Q, M]) handleMutation(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 
 	if this.Mutation == nil {
 		return nil, errMethodNotAllowed
@@ -70,7 +70,8 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx Context) (any, error) {
 	return this.Mutation.Handle(ctx, args, payload)
 }
 
-func procedureGetArgs(ctx Context) Args {
+func procedureGetArgs(ctx *Context) Args {
+
 	args := map[string]string{}
 
 	for key, entries := range ctx.Req.URL.Query() {
