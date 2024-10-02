@@ -10,14 +10,22 @@ import (
 type RestHandler struct {
 	Router         Router
 	Prefix         string
-	OnBeforeHandle HookHandlerFn
-	OnAfterHandle  HookHandlerFn
+	OnBeforeHandle HookPreHandlerFn
+	OnAfterHandle  HookPostHandlerFn
 	OnError        ErrorHandlerFn
 }
 
-// todo: pass response.writer hooks
-type HookHandlerFn func(ctx *Context) error
+type HookPreHandlerFn func(ctx *Context) error
+type HookPostHandlerFn func(ctx *Context, result *RestResponse) error
+
 type ErrorHandlerFn func(err error, ctx Context)
+
+type RestResponse struct {
+	Data    any         `json:"data"`
+	Error   *ProcError  `json:"error,omitempty"`
+	Status  int         `json:"-"`
+	Headers http.Header `json:"-"`
+}
 
 func defaultErrorHandler(err error, _ Context) {
 	log.Default().Print("gothrpc error: ", err.Error())
@@ -60,32 +68,83 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 				this.OnError(err, ctx)
 			}
 
-			writeErrorResponse(writer, err)
+			writeResponse(writer, wrapErrorResult(err))
 		}
 	}()
 
 	if this.OnBeforeHandle != nil {
 		if err := this.OnBeforeHandle(&ctx); err != nil {
-			writeErrorResponse(writer, err)
+			writeResponse(writer, wrapErrorResult(err))
 			return
 		}
 	}
 
-	result, err := this.Router.Handle(ctx)
-	if err != nil {
-		writeErrorResponse(writer, err)
-		return
+	result := wrapHandlerResult(this.Router.Handle(ctx))
+
+	if this.OnAfterHandle != nil {
+		if err := this.OnAfterHandle(&ctx, &result); err != nil {
+			writeResponse(writer, wrapErrorResult(err))
+			return
+		}
 	}
 
-	//	todo: add onAfterHandle
-
-	writeDataResponse(writer, result)
+	writeResponse(writer, result)
 }
 
-func writeResponse(writer http.ResponseWriter, response procResult) {
+func wrapDataResult(data any) RestResponse {
 
-	if response.header != nil {
-		for header, entry := range response.header {
+	result := RestResponse{
+		Status: 200,
+		Data:   data,
+	}
+
+	if data == nil {
+		result.Status = 204
+	}
+
+	if ext, ok := data.(Statuser); ok {
+		result.Status = ext.StatusCode()
+	}
+
+	if ext, ok := data.(Headerer); ok {
+		result.Headers = ext.Headers()
+	}
+
+	return result
+}
+
+func wrapErrorResult(err error) RestResponse {
+
+	response := RestResponse{
+		Error: &ProcError{
+			Message: err.Error(),
+		},
+	}
+
+	if ext, ok := err.(Headerer); ok {
+		response.Headers = ext.Headers()
+	}
+
+	if ext, ok := err.(Statuser); ok {
+		response.Status = ext.StatusCode()
+	}
+
+	return response
+}
+
+func wrapHandlerResult(data any, err error) RestResponse {
+
+	if err != nil {
+		return wrapErrorResult(err)
+	}
+
+	return wrapDataResult(data)
+}
+
+func writeResponse(writer http.ResponseWriter, response RestResponse) {
+
+	if response.Headers != nil {
+		for header, entry := range response.Headers {
 			for _, value := range entry {
 				writer.Header().Set(header, value)
 			}
@@ -93,47 +152,7 @@ func writeResponse(writer http.ResponseWriter, response procResult) {
 	}
 
 	writer.Header().Set("content-type", "application/json")
-	writer.WriteHeader(response.status)
+	writer.WriteHeader(response.Status)
 
 	json.NewEncoder(writer).Encode(response)
-}
-
-func writeErrorResponse(writer http.ResponseWriter, err error) {
-
-	response := procResult{
-		Error: &ProcError{
-			Message: err.Error(),
-		},
-	}
-
-	if ext, ok := err.(Headerer); ok {
-		response.header = ext.Headers()
-	}
-
-	if ext, ok := err.(Statuser); ok {
-		response.status = ext.StatusCode()
-	}
-
-	writeResponse(writer, response)
-}
-
-func writeDataResponse(writer http.ResponseWriter, result any) {
-
-	response := procResult{
-		status: 200,
-		Data:   result,
-	}
-
-	if result == nil {
-		response.status = 204
-	}
-
-	if ext, ok := result.(Statuser); ok {
-		response.status = ext.StatusCode()
-	}
-	if ext, ok := result.(Headerer); ok {
-		response.header = ext.Headers()
-	}
-
-	writeResponse(writer, response)
 }

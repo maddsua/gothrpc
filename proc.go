@@ -4,8 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
 )
+
+type Statuser interface {
+	StatusCode() int
+}
+
+type Headerer interface {
+	Headers() http.Header
+}
 
 type Procedure[P any, Q any, M any] struct {
 	Query    QueryHandler[Q]
