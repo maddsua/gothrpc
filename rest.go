@@ -27,7 +27,7 @@ type RestResponse struct {
 	Headers http.Header `json:"-"`
 }
 
-func defaultErrorHandler(err error, _ Context) {
+func defaultErrorHandler(err error) {
 	log.Default().Print("gothrpc error: ", err.Error())
 }
 
@@ -66,6 +66,8 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 			if this.OnError != nil {
 				this.OnError(err, ctx)
+			} else {
+				defaultErrorHandler(err)
 			}
 
 			writeResponse(writer, wrapErrorResult(err))
