@@ -4,18 +4,27 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
 )
+
+type Statuser interface {
+	StatusCode() int
+}
+
+type Headerer interface {
+	Headers() http.Header
+}
 
 type Procedure[P any, Q any, M any] struct {
 	Query    QueryHandler[Q]
 	Mutation MutationHandler[P, M]
 }
 
-func (this *Procedure[P, Q, M]) Handle(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) Handle(ctx *Context) (any, error) {
 
 	if ctx.procPath.HasNext() {
-		return nil, ErrorProcedureNotFound
+		return nil, errProcNotFound
 	}
 
 	switch ctx.Req.Method {
@@ -25,13 +34,13 @@ func (this *Procedure[P, Q, M]) Handle(ctx Context) (any, error) {
 		return this.handleMutation(ctx)
 	}
 
-	return nil, ErrorMethodNotAllowed
+	return nil, errMethodNotAllowed
 }
 
-func (this *Procedure[P, Q, M]) handleQuery(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) handleQuery(ctx *Context) (any, error) {
 
 	if this.Query == nil {
-		return nil, ErrorMethodNotAllowed
+		return nil, errMethodNotAllowed
 	}
 
 	args := procedureGetArgs(ctx)
@@ -39,10 +48,10 @@ func (this *Procedure[P, Q, M]) handleQuery(ctx Context) (any, error) {
 	return this.Query.Handle(ctx, args)
 }
 
-func (this *Procedure[P, Q, M]) handleMutation(ctx Context) (any, error) {
+func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 
 	if this.Mutation == nil {
-		return nil, ErrorMethodNotAllowed
+		return nil, errMethodNotAllowed
 	}
 
 	var payload P
@@ -61,7 +70,8 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx Context) (any, error) {
 	return this.Mutation.Handle(ctx, args, payload)
 }
 
-func procedureGetArgs(ctx Context) Args {
+func procedureGetArgs(ctx *Context) Args {
+
 	args := map[string]string{}
 
 	for key, entries := range ctx.Req.URL.Query() {

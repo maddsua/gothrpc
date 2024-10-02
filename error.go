@@ -5,31 +5,28 @@ import "net/http"
 type ProcError struct {
 	Message    string         `json:"message"`
 	Extensions map[string]any `json:"extensions,omitempty"`
+	HttpStatus int            `json:"-"`
 }
 
 func (this ProcError) Error() string {
 	return this.Message
 }
 
-type ProcErrorWithCode struct {
-	ProcError
-	code int
+func (this ProcError) StatusCode() int {
+
+	if this.HttpStatus < http.StatusBadRequest {
+		return http.StatusBadRequest
+	}
+
+	return this.HttpStatus
 }
 
-func (this ProcErrorWithCode) StatusCode() int {
-	return this.code
+var errProcNotFound = ProcError{
+	Message:    "procedure not found",
+	HttpStatus: http.StatusNotFound,
 }
 
-var ErrorProcedureNotFound = ProcErrorWithCode{
-	ProcError: ProcError{
-		Message: "procedure not found",
-	},
-	code: http.StatusNotFound,
-}
-
-var ErrorMethodNotAllowed = ProcErrorWithCode{
-	ProcError: ProcError{
-		Message: "method not allowed",
-	},
-	code: http.StatusMethodNotAllowed,
+var errMethodNotAllowed = ProcError{
+	Message:    "method not allowed",
+	HttpStatus: http.StatusMethodNotAllowed,
 }

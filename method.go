@@ -7,10 +7,10 @@ type Method struct {
 	DELETE Handler
 }
 
-func (this *Method) Handle(ctx Context) (any, error) {
+func (this *Method) Handle(ctx *Context) (any, error) {
 
 	if ctx.procPath.HasNext() {
-		return nil, ErrorProcedureNotFound
+		return nil, errProcNotFound
 	}
 
 	var useHandler Handler
@@ -27,7 +27,7 @@ func (this *Method) Handle(ctx Context) (any, error) {
 	}
 
 	if useHandler == nil {
-		return nil, ErrorMethodNotAllowed
+		return nil, errMethodNotAllowed
 	}
 
 	return useHandler.Handle(ctx)
