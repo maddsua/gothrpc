@@ -96,7 +96,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 func wrapDataResult(data any) RestResponse {
 
 	result := RestResponse{
-		Status: 200,
+		Status: http.StatusOK,
 		Data:   data,
 	}
 
@@ -121,6 +121,7 @@ func wrapErrorResult(err error) RestResponse {
 		Error: &ProcError{
 			Message: err.Error(),
 		},
+		Status: http.StatusBadRequest,
 	}
 
 	if ext, ok := err.(Headerer); ok {
@@ -151,6 +152,10 @@ func writeResponse(writer http.ResponseWriter, response RestResponse) {
 				writer.Header().Set(header, value)
 			}
 		}
+	}
+
+	if response.Status < http.StatusContinue {
+		response.Status = http.StatusOK
 	}
 
 	writer.Header().Set("content-type", "application/json")
