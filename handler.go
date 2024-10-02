@@ -17,10 +17,11 @@ type MutationHandler[P, R any] interface {
 }
 
 type Context struct {
-	Req          *http.Request
-	Props        any
-	errorHandler func(err error, ctx Context)
-	procPath     procStepper
+	//	Original http request pointer
+	Req *http.Request
+	//	A custom value passed between procedure and executor hooks
+	Value    any
+	procPath procStepper
 }
 
 type Args map[string]string

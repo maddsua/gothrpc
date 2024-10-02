@@ -41,7 +41,7 @@ var procRouter = gothrpc.Router{
 	},
 	"props": &gothrpc.Procedure[any, any, any]{
 		Query: gothrpc.QueryHandlerFn(func(ctx gothrpc.Context, args gothrpc.Args) (any, error) {
-			return ctx.Props, nil
+			return ctx.Value, nil
 		}),
 	},
 	"panic": &gothrpc.Procedure[any, any, any]{

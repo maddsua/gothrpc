@@ -71,12 +71,6 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 		}
 	}
 
-	if this.OnError != nil {
-		ctx.errorHandler = this.OnError
-	} else {
-		ctx.errorHandler = defaultErrorHandler
-	}
-
 	result, err := this.Router.Handle(ctx)
 	if err != nil {
 		writeErrorResponse(writer, err)
