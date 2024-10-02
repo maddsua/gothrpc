@@ -8,11 +8,16 @@ import (
 )
 
 type RestHandler struct {
-	Router         Router
-	Prefix         string
+	//	Source procedures
+	Router Router
+	//	HTTP path prefix
+	Prefix string
+	//	Hook that's called before request is passed to the router
 	OnBeforeHandle HookPreHandlerFn
-	OnAfterHandle  HookPostHandlerFn
-	OnError        ErrorHandlerFn
+	//	Hook that's called after request is processed by the router
+	OnAfterHandle HookPostHandlerFn
+	//	Error handler callback (logger)
+	OnError ErrorHandlerFn
 }
 
 type HookPreHandlerFn func(ctx *Context) error
