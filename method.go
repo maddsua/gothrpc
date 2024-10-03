@@ -9,7 +9,7 @@ type Method struct {
 
 func (this *Method) Handle(ctx *Context) (any, error) {
 
-	if ctx.procPath.HasNext() {
+	if ctx.path.hasNext() {
 		return nil, errProcNotFound
 	}
 

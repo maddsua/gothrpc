@@ -2,19 +2,19 @@ package gothrpc
 
 import "strings"
 
-func newStepper(path string) procStepper {
+func newProcPath(path string) procPath {
 	pathTrimmed := strings.TrimSuffix(strings.TrimPrefix(path, "/"), "/")
-	return procStepper{
+	return procPath{
 		segments: strings.Split(pathTrimmed, "/"),
 	}
 }
 
-type procStepper struct {
+type procPath struct {
 	segments []string
 	cursor   int
 }
 
-func (this *procStepper) Next() (string, bool) {
+func (this *procPath) next() (string, bool) {
 
 	if this.cursor < 0 || this.cursor >= len(this.segments) {
 		return "", false
@@ -26,6 +26,6 @@ func (this *procStepper) Next() (string, bool) {
 	return segment, true
 }
 
-func (this *procStepper) HasNext() bool {
+func (this *procPath) hasNext() bool {
 	return this.cursor < len(this.segments)
 }

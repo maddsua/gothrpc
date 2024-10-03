@@ -20,8 +20,9 @@ type Context struct {
 	//	Original http request pointer
 	Req *http.Request
 	//	A custom value passed between procedure and executor hooks
-	Value    any
-	procPath procStepper
+	Value any
+	//	Rest procedure path steps
+	path procPath
 }
 
 type Args map[string]string
@@ -38,7 +39,7 @@ type handlerFuncWrapper struct {
 
 func (this *handlerFuncWrapper) Handle(ctx *Context) (any, error) {
 
-	if ctx.procPath.HasNext() {
+	if ctx.path.hasNext() {
 		return nil, errProcNotFound
 	}
 

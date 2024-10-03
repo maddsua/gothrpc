@@ -23,7 +23,7 @@ type Procedure[P any, Q any, M any] struct {
 
 func (this *Procedure[P, Q, M]) Handle(ctx *Context) (any, error) {
 
-	if ctx.procPath.HasNext() {
+	if ctx.path.hasNext() {
 		return nil, errProcNotFound
 	}
 
