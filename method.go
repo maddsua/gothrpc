@@ -7,28 +7,31 @@ type Method struct {
 	DELETE Handler
 }
 
+func invokeMethodHandler(method Handler, ctx *Context) (any, error) {
+
+	if method == nil {
+		return nil, errMethodNotAllowed
+	}
+
+	return method.Handle(ctx)
+}
+
 func (this *Method) Handle(ctx *Context) (any, error) {
 
 	if ctx.path.hasNext() {
 		return nil, errProcNotFound
 	}
 
-	var useHandler Handler
-
 	switch ctx.Req.Method {
 	case "GET":
-		useHandler = this.GET
+		return invokeMethodHandler(this.GET, ctx)
 	case "POST":
-		useHandler = this.POST
+		return invokeMethodHandler(this.POST, ctx)
 	case "PUT":
-		useHandler = this.PUT
+		return invokeMethodHandler(this.PUT, ctx)
 	case "DELETE":
-		useHandler = this.DELETE
-	}
-
-	if useHandler == nil {
+		return invokeMethodHandler(this.DELETE, ctx)
+	default:
 		return nil, errMethodNotAllowed
 	}
-
-	return useHandler.Handle(ctx)
 }
