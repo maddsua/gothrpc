@@ -2,17 +2,17 @@ package gothrpc
 
 import "net/http"
 
-type ProcError struct {
+type Error struct {
 	Message    string         `json:"message"`
 	Extensions map[string]any `json:"extensions,omitempty"`
 	HttpStatus int            `json:"-"`
 }
 
-func (this ProcError) Error() string {
+func (this Error) Error() string {
 	return this.Message
 }
 
-func (this ProcError) StatusCode() int {
+func (this Error) StatusCode() int {
 
 	if this.HttpStatus < http.StatusBadRequest {
 		return http.StatusBadRequest
@@ -21,12 +21,12 @@ func (this ProcError) StatusCode() int {
 	return this.HttpStatus
 }
 
-var errProcNotFound = ProcError{
+var errProcNotFound = Error{
 	Message:    "procedure not found",
 	HttpStatus: http.StatusNotFound,
 }
 
-var errMethodNotAllowed = ProcError{
+var errMethodNotAllowed = Error{
 	Message:    "method not allowed",
 	HttpStatus: http.StatusMethodNotAllowed,
 }

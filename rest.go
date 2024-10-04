@@ -27,7 +27,7 @@ type ErrorHandlerFn func(err error, ctx *Context)
 
 type RestResponse struct {
 	Data    any         `json:"data"`
-	Error   *ProcError  `json:"error,omitempty"`
+	Error   *Error      `json:"error,omitempty"`
 	Status  int         `json:"-"`
 	Headers http.Header `json:"-"`
 }
@@ -54,7 +54,7 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 		if re := recover(); re != nil {
 
-			err := ProcError{
+			err := Error{
 				HttpStatus: http.StatusInternalServerError,
 			}
 
@@ -123,7 +123,7 @@ func wrapDataResult(data any) RestResponse {
 func wrapErrorResult(err error) RestResponse {
 
 	response := RestResponse{
-		Error: &ProcError{
+		Error: &Error{
 			Message: err.Error(),
 		},
 		Status: http.StatusBadRequest,
