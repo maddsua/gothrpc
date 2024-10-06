@@ -47,21 +47,12 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 
 	if strings.Contains(ctx.Req.Header.Get("content-type"), "json") {
 
-		//	construct some of the nil-by-default types
-		switch any(payload).(type) {
-		case QueryInput:
-			payload = any(QueryInput{}).(P)
-
-		case map[string]any:
-			payload = any(map[string]any{}).(P)
-		}
-
 		//	parse json payload
 		if data, err := io.ReadAll(ctx.Req.Body); err == nil {
 			if err := json.Unmarshal(data, &payload); err != nil {
 				return nil, Error{
 					Message: "failed to unwrap mutation props",
-					Extensions: map[string]any{
+					Extensions: ErrorExtensions{
 						"cause": err.Error(),
 					},
 				}

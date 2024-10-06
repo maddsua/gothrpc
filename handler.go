@@ -21,7 +21,7 @@ type MutationHandler[P, R any] interface {
 type Context struct {
 	//	Original http request pointer
 	Req *http.Request
-	//	A custom value passed between procedure and executor hooks
+	//	A custom value passed between procedure and esxecutor hooks
 	Value any
 	//	Rest procedure path steps
 	path procPath

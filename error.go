@@ -7,10 +7,12 @@ type ProcedureError interface {
 }
 
 type Error struct {
-	Message    string         `json:"message"`
-	Extensions map[string]any `json:"extensions,omitempty"`
-	HttpStatus int            `json:"-"`
+	Message    string          `json:"message"`
+	Extensions ErrorExtensions `json:"extensions,omitempty"`
+	HttpStatus int             `json:"-"`
 }
+
+type ErrorExtensions map[string]any
 
 func (this Error) ProcError() *Error {
 	return &this
