@@ -8,6 +8,7 @@ type ProcedureError interface {
 
 type Error struct {
 	Message    string          `json:"message"`
+	Cause      string          `json:"cause,omitmepty"`
 	Extensions ErrorExtensions `json:"extensions,omitempty"`
 	HttpStatus int             `json:"-"`
 }

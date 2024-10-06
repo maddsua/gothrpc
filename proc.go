@@ -51,10 +51,8 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 		if data, err := io.ReadAll(ctx.Req.Body); err == nil {
 			if err := json.Unmarshal(data, &payload); err != nil {
 				return nil, Error{
-					Message: "failed to unwrap mutation props",
-					Extensions: ErrorExtensions{
-						"cause": err.Error(),
-					},
+					Message: "invalid mutation props",
+					Cause:   err.Error(),
 				}
 			}
 		}
