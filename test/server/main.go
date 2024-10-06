@@ -31,11 +31,11 @@ var procRouter = gothrpc.Router{
 		}),
 	},
 	"next": gothrpc.Router{
-		"test": &gothrpc.Procedure[any, string, string]{
+		"test": &gothrpc.Procedure[gothrpc.QueryInput, string, string]{
 			Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, input gothrpc.QueryInput) (string, error) {
 				return "whoa a next gen test fr", nil
 			}),
-			Mutation: gothrpc.MutationHandlerFn(func(ctx *gothrpc.Context, input any) (string, error) {
+			Mutation: gothrpc.MutationHandlerFn(func(ctx *gothrpc.Context, input gothrpc.QueryInput) (string, error) {
 				fmt.Printf("payload: %v\n", input)
 				return "ok so this would imply that we did modify something, eh?", nil
 			}),

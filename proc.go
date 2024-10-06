@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
 )
 
@@ -34,18 +35,7 @@ func (this *Procedure[P, Q, M]) handleQuery(ctx *Context) (any, error) {
 		return nil, errMethodNotAllowed
 	}
 
-	input := map[string]string{}
-
-	for key, entries := range ctx.Req.URL.Query() {
-
-		if len(entries) == 0 {
-			continue
-		}
-
-		input[key] = entries[len(entries)-1]
-	}
-
-	return this.Query.Handle(ctx, input)
+	return this.Query.Handle(ctx, getQueryInput(ctx.Req))
 }
 
 func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
@@ -56,14 +46,47 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 
 	var payload P
 
-	//	fail if P is a concrete type and body is empty
 	if strings.Contains(ctx.Req.Header.Get("content-type"), "json") {
+
+		//	construct some of the nil-by-default types
+		switch any(payload).(type) {
+		case QueryInput:
+			payload = any(QueryInput{}).(P)
+
+		case map[string]any:
+			payload = any(map[string]any{}).(P)
+		}
+
+		//	parse json payload
 		if data, err := io.ReadAll(ctx.Req.Body); err == nil {
 			if err := json.Unmarshal(data, &payload); err != nil {
-				return nil, errors.New("failed to parse mutation props")
+				return nil, errors.New("failed to unwrap mutation props")
 			}
+		}
+
+	} else {
+		//	extract input from URL search aprams
+		switch any(payload).(type) {
+		case QueryInput:
+			payload = any(getQueryInput(ctx.Req)).(P)
 		}
 	}
 
 	return this.Mutation.Handle(ctx, payload)
+}
+
+func getQueryInput(req *http.Request) QueryInput {
+
+	input := map[string]string{}
+
+	for key, entries := range req.URL.Query() {
+
+		if len(entries) == 0 {
+			continue
+		}
+
+		input[key] = entries[len(entries)-1]
+	}
+
+	return input
 }
