@@ -25,6 +25,10 @@ type Context struct {
 	path procPath
 }
 
+func (this *Context) Proc() (string, bool) {
+	return this.path.at()
+}
+
 type Args map[string]string
 
 func HandleFn(handler func(ctx *Context) (any, error)) Handler {

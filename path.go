@@ -12,11 +12,14 @@ func newProcPath(path string) procPath {
 type procPath struct {
 	segments []string
 	cursor   int
+	hydrated bool
 }
 
 func (this *procPath) next() (string, bool) {
 
-	if this.cursor < 0 || this.cursor >= len(this.segments) {
+	this.hydrated = true
+
+	if this.cursor >= len(this.segments) {
 		return "", false
 	}
 
@@ -27,5 +30,19 @@ func (this *procPath) next() (string, bool) {
 }
 
 func (this *procPath) hasNext() bool {
+	this.hydrated = true
 	return this.cursor < len(this.segments)
+}
+
+func (this *procPath) at() (string, bool) {
+
+	if !this.hydrated || len(this.segments) == 0 {
+		return "", false
+	}
+
+	if this.cursor >= len(this.segments) {
+		return this.segments[len(this.segments)-1], true
+	}
+
+	return this.segments[this.cursor], true
 }
