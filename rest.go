@@ -139,8 +139,8 @@ func wrapErrorResult(err error) RestResponse {
 		Status: http.StatusBadRequest,
 	}
 
-	if ext, valid := err.(ProcedureError); valid {
-		response.Error = ext.ProcError()
+	if ext, valid := err.(Error); valid {
+		response.Error = &ext
 	} else {
 		response.Error = &Error{
 			Message: err.Error(),
