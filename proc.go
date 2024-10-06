@@ -2,7 +2,6 @@ package gothrpc
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -60,7 +59,12 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 		//	parse json payload
 		if data, err := io.ReadAll(ctx.Req.Body); err == nil {
 			if err := json.Unmarshal(data, &payload); err != nil {
-				return nil, errors.New("failed to unwrap mutation props")
+				return nil, Error{
+					Message: "failed to unwrap mutation props",
+					Extensions: map[string]any{
+						"cause": err.Error(),
+					},
+				}
 			}
 		}
 

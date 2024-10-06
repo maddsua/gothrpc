@@ -136,17 +136,22 @@ func wrapDataResult(data any) RestResponse {
 func wrapErrorResult(err error) RestResponse {
 
 	response := RestResponse{
-		Error: &Error{
-			Message: err.Error(),
-		},
 		Status: http.StatusBadRequest,
 	}
 
-	if ext, ok := err.(Headerer); ok {
+	if ext, valid := err.(ProcedureError); valid {
+		response.Error = ext.ProcError()
+	} else {
+		response.Error = &Error{
+			Message: err.Error(),
+		}
+	}
+
+	if ext, valid := err.(Headerer); valid {
 		response.Headers = ext.Headers()
 	}
 
-	if ext, ok := err.(Statuser); ok {
+	if ext, valid := err.(Statuser); valid {
 		response.Status = ext.StatusCode()
 	}
 

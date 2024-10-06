@@ -2,10 +2,18 @@ package gothrpc
 
 import "net/http"
 
+type ProcedureError interface {
+	ProcError() *Error
+}
+
 type Error struct {
 	Message    string         `json:"message"`
 	Extensions map[string]any `json:"extensions,omitempty"`
 	HttpStatus int            `json:"-"`
+}
+
+func (this Error) ProcError() *Error {
+	return &this
 }
 
 func (this Error) Error() string {
