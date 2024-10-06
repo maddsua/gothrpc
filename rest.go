@@ -48,6 +48,11 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 
 	//	todo: add CORS handler
 
+	//	this avoids nil dereferencing later on
+	if this.Router == nil {
+		this.Router = Router{}
+	}
+
 	path := req.URL.Path
 	if this.Prefix != "" {
 		path = strings.TrimPrefix(path, this.Prefix)
