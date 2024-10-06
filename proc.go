@@ -4,17 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"net/http"
 	"strings"
 )
-
-type Statuser interface {
-	StatusCode() int
-}
-
-type Headerer interface {
-	Headers() http.Header
-}
 
 type Procedure[P any, Q any, M any] struct {
 	Query    QueryHandler[Q]
@@ -43,9 +34,18 @@ func (this *Procedure[P, Q, M]) handleQuery(ctx *Context) (any, error) {
 		return nil, errMethodNotAllowed
 	}
 
-	args := procedureGetArgs(ctx)
+	input := map[string]string{}
 
-	return this.Query.Handle(ctx, args)
+	for key, entries := range ctx.Req.URL.Query() {
+
+		if len(entries) == 0 {
+			continue
+		}
+
+		input[key] = entries[len(entries)-1]
+	}
+
+	return this.Query.Handle(ctx, input)
 }
 
 func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
@@ -65,23 +65,5 @@ func (this *Procedure[P, Q, M]) handleMutation(ctx *Context) (any, error) {
 		}
 	}
 
-	args := procedureGetArgs(ctx)
-
-	return this.Mutation.Handle(ctx, args, payload)
-}
-
-func procedureGetArgs(ctx *Context) Args {
-
-	args := map[string]string{}
-
-	for key, entries := range ctx.Req.URL.Query() {
-
-		if len(entries) == 0 {
-			continue
-		}
-
-		args[key] = entries[len(entries)-1]
-	}
-
-	return args
+	return this.Mutation.Handle(ctx, payload)
 }

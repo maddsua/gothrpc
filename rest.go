@@ -32,6 +32,14 @@ type RestResponse struct {
 	Headers http.Header `json:"-"`
 }
 
+type Statuser interface {
+	StatusCode() int
+}
+
+type Headerer interface {
+	Headers() http.Header
+}
+
 func defaultErrorHandler(err error) {
 	log.Default().Print("gothrpc error: ", err.Error())
 }

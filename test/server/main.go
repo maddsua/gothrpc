@@ -32,22 +32,22 @@ var procRouter = gothrpc.Router{
 	},
 	"next": gothrpc.Router{
 		"test": &gothrpc.Procedure[any, string, string]{
-			Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args) (string, error) {
+			Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, input gothrpc.QueryInput) (string, error) {
 				return "whoa a next gen test fr", nil
 			}),
-			Mutation: gothrpc.MutationHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args, p any) (string, error) {
-				fmt.Printf("payload: %v\n", p)
+			Mutation: gothrpc.MutationHandlerFn(func(ctx *gothrpc.Context, input any) (string, error) {
+				fmt.Printf("payload: %v\n", input)
 				return "ok so this would imply that we did modify something, eh?", nil
 			}),
 		},
 	},
 	"props": &gothrpc.Procedure[any, any, any]{
-		Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args) (any, error) {
+		Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, input gothrpc.QueryInput) (any, error) {
 			return ctx.Value, nil
 		}),
 	},
 	"panic": &gothrpc.Procedure[any, any, any]{
-		Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, args gothrpc.Args) (any, error) {
+		Query: gothrpc.QueryHandlerFn(func(ctx *gothrpc.Context, input gothrpc.QueryInput) (any, error) {
 			panic("test panic")
 		}),
 	},
