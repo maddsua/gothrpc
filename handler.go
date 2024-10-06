@@ -25,7 +25,7 @@ type Context struct {
 	path procPath
 }
 
-func (this *Context) Proc() (string, bool) {
+func (this *Context) ProcName() string {
 	return this.path.at()
 }
 

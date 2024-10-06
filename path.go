@@ -34,15 +34,15 @@ func (this *procPath) hasNext() bool {
 	return this.cursor < len(this.segments)
 }
 
-func (this *procPath) at() (string, bool) {
+func (this *procPath) at() string {
 
 	if !this.hydrated || len(this.segments) == 0 {
-		return "", false
+		return ""
 	}
 
 	if this.cursor >= len(this.segments) {
-		return this.segments[len(this.segments)-1], true
+		return this.segments[len(this.segments)-1]
 	}
 
-	return this.segments[this.cursor], true
+	return this.segments[this.cursor]
 }
