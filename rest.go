@@ -59,8 +59,9 @@ func (this *RestHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request
 	}
 
 	ctx := &Context{
-		Req:  req,
-		path: newProcPath(path),
+		Req:    req,
+		Writer: writer,
+		path:   newProcPath(path),
 	}
 
 	defer func() {
